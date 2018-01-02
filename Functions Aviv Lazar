@@ -1,0 +1,501 @@
+#pragma once
+#ifndef __HOTEL_FUNC
+#define __HOTEL_FUNC 
+
+#pragma warning(disable: 4996)
+#include <stdio.h>
+#include "Hotel_Structs.h"
+#include <string.h>
+#include <conio.h>
+
+
+#define START_ID 1
+
+// checkIn errors
+#define THE_CUSTOMER_ALREADY_EXSISTS -1000
+#define USER_DONT_WANT_TO_ADD_CUSTOMER -1001
+#define THERE_IS_NOT_AN_EMPTY_ROOM_IN_HOLE_HOTEL -1002
+//#define CREDIT_NUMBER_IS_ILLEGAL -1003
+//#define CREDIT_VALIDITY_IS_ILLEGAL -1004
+#define CREDIT_CARD_LENGTH_ILLEGAL -1005
+#define CREDIT_CARD_CONTAINS_CHARACTERS -1006
+
+#define CHECKIN_COMPLETED_SUCCESSFULLY 1000
+#define CHECKOUT_COMPLETED_SUCCESSFULLY 1001
+#define CREDIT_CARD_NUM_IS_OK 1002
+
+#define ROOM_FOR_CHECKOUT_WAS_NOT_FOUNT -1007
+
+
+
+// dont touch!
+#define FALSE 0
+#define TRUE 1
+
+
+
+//Makro:
+// Is num of guests legal (in one room)
+#define isNumOfGuestInRoomLegal(numOfGuest)  ((numOfGuest >= MIN_GUESTS_IN_ONE_ROOM && numOfGuest <= MAX_GUESTS_IN_ONE_ROOM) ? TRUE : FALSE)
+// Is num of guests who can eat breakfast legal (in one room)
+#define isNumOfGuestInRoomEatBreakfastLegal(breakfast)  ((breakfast >= MIN_GUESTS_HAVE_BREAKFAST && breakfast <= MAX_GUESTS_HAVE_BREAKFAST) ? TRUE : FALSE)
+// Is credit validity month legal
+#define isCreditValidityMonthLegal(month)  ((month >= MIN_MONTH && month <= MAX_MONTH) ? TRUE : FALSE)
+// Is credit validity year legal
+#define isCreditValidityYearLegal(year)  ((year >= MIN_YEAR && year <= MAX_YEAR) ? TRUE : FALSE)
+// return true if the names are the same, ignore letter' cases
+#define areNamesIdenticalIgnoreLetterCases(n1, n2)  ((strcmp(strlwr(n1), strlwr(n2)) == 0) ? TRUE : FALSE)
+
+#define getRoomNumber(floorIndexInArray, roomIndexInArray)  ((floorIndexInArray + 1) * MAX_ROOMS_IN_ONE_FLOOR + roomIndexInArray + 1);
+
+
+
+/*  show the status of all rooms which are contained in hotel */
+void showHotelStatus(const Hotel_t* hotel)
+{
+	int floors = hotel->floors;
+	int roomsInFloor = hotel->roomsInFloor;
+	Room_t **mat = hotel->roomMatrix;
+	int i, j;
+	// For comfort:
+	int numOfGuests, breakfast, roomNum;
+	for (i = 0; i < floors; i++)
+	{
+		//printf("\n\nFLOOR %d:\n", i+1);
+		for (j = 0; j < roomsInFloor; j++)
+		{
+			roomNum = getRoomNumber(i, j);
+			if (mat[i][j].isOccupied == 1)
+			{
+				numOfGuests = mat[i][j].numOfGuests;
+				breakfast = mat[i][j].breakfast;
+				printf("|  Room %-3d  ||  Guests : %d  ||  Breakfasts: %-d  |\n", roomNum, numOfGuests, breakfast);
+			}
+			else
+			{
+				printf("|  Room %-3d  ||  empty  |\n", roomNum);
+			}
+		}
+		printf("\n");
+	}
+}
+
+
+
+
+
+
+/* Add customer */
+Customer_t* addCustomer(const char* name, const char *creditNum, const int creditValMonth, const int creditValYear, Super_Struct *manager)
+{
+	static int id = START_ID;  // internal system customer' id
+
+	if (manager->customerArraySize <= manager->numOfCustomers)  // if there are more customers than the array can contains:
+	{
+		//  let's double the size of the array
+		manager->customerArraySize *= 2;
+		manager->customerArray = (Customer_t*)realloc(manager->customerArray, manager->customerArraySize * sizeof(Customer_t));
+	}
+
+	int index = manager->numOfCustomers;
+	Customer_t* cPointer = manager->customerArray;
+	// savings
+	cPointer[index].id = id;  // id 
+	//cPointer[index].name = (char*)calloc(strlen(name), sizeof(char));  // name
+	strcpy(cPointer[index].name, name);  
+	strcpy(cPointer[index].creditNum, creditNum);  // credit number
+	cPointer[index].creditValMonth = creditValMonth;  // cradit month is saved
+	cPointer[index].creditValYear = creditValYear;  // cradit year is saved
+
+	id++;
+	(manager->numOfCustomers)++;
+	return cPointer + index;
+}
+
+
+
+// TODO add reservatrion method
+void addReservation(Customer_t *customerPointer, Room_t *roomPointer, Super_Struct* manager)
+{
+	if (manager->reservatrionArraySize <= manager->numOfReservations)
+	{
+		//  let's double the size of the array
+		manager->reservatrionArraySize *= 2;
+		manager->reservatrionArray = (Reservatrion_t*)realloc(manager->reservatrionArray, manager->reservatrionArraySize * sizeof(Reservatrion_t));
+	}
+
+	int index = manager->numOfReservations;
+	Reservatrion_t* rPointer = manager->reservatrionArray;
+	// saving:
+	rPointer[index].customerPointer = customerPointer;
+	rPointer[index].roomPointer = roomPointer;
+	rPointer[index].numOfGuests = roomPointer->numOfGuests;
+	rPointer[index].breakfast = roomPointer->breakfast;
+	rPointer[index].isCheckOut = FALSE;
+
+	manager->numOfReservations++;
+}
+
+
+
+
+/*Print all information about a spesific room*/
+void printRoom(Room_t *room)
+{
+	if (room->isOccupied == FALSE) 
+	{
+		printf("The room is empty.\n");
+	}
+	else
+	{
+		printf("The room is rented!\n");
+	}
+	printf("Number of guests: %d", room->numOfGuests);
+	printf("Number of guests who allow to eat breakfast: %d", room->breakfast);
+}
+
+
+// 6.A
+/* Check customer' credit' number. if 'creditNum' is legal, return 1. Else 0*/
+int isCreditNumberLegal(const char* creditNum)
+{
+	int i = 0;
+	char currenrChar;
+	while (creditNum[i] != '\0')
+	{
+		currenrChar = creditNum[i];
+		//printf("index : %d, char : %c\n", i, currenrChar);
+		if (currenrChar < '0' || currenrChar > '9')  // if temp is not a digit
+		{
+			//printf("is not digit\n");
+			return FALSE;
+		}
+	}
+	// All chars are digits
+	return TRUE;
+}
+
+
+// 6.B
+/* Check customer' credit' validity. If the validity is legal it returns 1. Else, 0 */
+/*
+int isCreditValidityLegal(const int creditValMonth, const int creditValYear)
+{
+	if ((creditValMonth < MIN_MONTH || creditValMonth > MAX_MONTH)
+		|| (creditValYear < MIN_YEAR || creditValYear > MAX_YEAR))
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
+*/
+
+// 7
+/* Transfer from little letters to capital letters*/
+void transferFromLittleToCapital(Customer_t* custromerArray, int arrSize)
+{
+	int i;
+	//Customer_t* pointer = custromerArray;
+	char* currentName;
+	for (i = 0; i < arrSize; i++)
+	{
+		currentName = custromerArray[i].name;
+		if (*currentName >= 'a' && *currentName <= 'z')
+		{
+			currentName[0] -= 32;
+		}
+	}
+}
+
+
+// 8 
+/*
+steps:
+allocate memory for size of the huge array of customer size
+go over customerArray and each time add a customer match to array advance by counter
+realloc the size of counter to new location
+free the old location
+return the new location
+
+--- for testing purposes will print everyone Inside
+*/
+/*
+customer_t* subStringCustomerArrayGetter(char* subString, management_t* manage)
+{
+	
+	if (manage->allCustomersArraySize == 0 || manage->allCustomers == NULL)
+	{
+		printf("\nno customers available returnning null \n");
+		return NULL;
+	}
+
+	// create maximum size array
+	customer_t * tempArray = (customer_t*)calloc(sizeof(customer_t), manage->allCustomersArraySize);
+
+	// put inside whoever need to be there
+	int counter = 0;
+	int i;
+	for (i = 0; i < manage->currentAllCustomersSize; i++)
+	{
+		if (strstr(manage->allCustomers[i].name, subString) != NULL)
+		{
+			tempArray[counter++] = manage->allCustomers[i];
+		}
+	}
+
+	customer_t* debug1 = tempArray;
+	customer_t* debug2 = tempArray + 1;
+	int a = 5;
+
+
+	// for ending realloc the space of the tempArray and free it.
+	// did size +1 for testing on both 431 and 432
+	// TODO check comment above + memcpy not working totally good need fix
+	customer_t* customerArrayOfSubString = (customer_t*)calloc(sizeof(customer_t), counter + 1);
+	memcpy(customerArrayOfSubString, tempArray, (counter + 1 * sizeof(customer_t)));
+	//customer_t* customerArrayOfSubString = (customer_t*)realloc(tempArray, (counter*sizeof(customer_t) )  );
+
+	customer_t* debug11 = customerArrayOfSubString;
+	customer_t* debug22 = (customerArrayOfSubString + 1);
+	int aa = 5;
+
+	free(tempArray);
+
+	customer_t* debug111 = customerArrayOfSubString;
+	customer_t* debug222 = customerArrayOfSubString + 1;
+	int aaa = 5;
+
+
+	// for testing go over customerArrayOfSubString and print customers
+	int j = 0;
+	while (j < counter)
+	{
+		customer_t *pos = customerArrayOfSubString + j;
+		PRINT_CUSTOMER(pos->id, pos->name, pos->creditCardNumber, pos->creditCardYear, pos->creditCardMonth)
+			j++;
+	}
+
+
+	return customerArrayOfSubString;
+
+}
+*/
+
+
+
+
+/*if checkIn was suc*/
+int checkIn(Super_Struct *manager)
+{
+	/* -Print all the Customers in the system.
+	   -The user write a name of customer.
+	   -If the customer' name exist, continue the program
+	   else, ask the user if he wants to add him to the system.
+	   The method check if there is an empty room.
+	   if it founds one, the method print the exact room' and the user may write the information about the customer:
+	   num of guests, num of guests who allow to eat breakfast.
+	   It calls to addCustomer for adding details about the customer. 
+	   The method add the current reservatrion to the array of reservatrions
+	*/
+	printf("\nList of all customers of %s Hotel\n", manager->hotelName);
+	int i;
+	Customer_t* customerArrayPointer = manager->customerArray;
+	for (i = 0; i < manager->numOfCustomers; i++)
+	{
+		printf("%d) %s\n", i+1, customerArrayPointer[i].name);
+	}
+	printf("\nPlease enter a name: ");
+	char* chosenName = (char*)malloc(MAX_NAME_LENGTH * sizeof(char));
+	//scanf("%s", chosenName);
+	gets(chosenName);  // save the name
+
+	int isEqual = FALSE;
+	i = 0;
+	int limit = manager->numOfCustomers;
+	while ((i < limit) && (isEqual == FALSE))
+	{
+		if (areNamesIdenticalIgnoreLetterCases(chosenName, customerArrayPointer[i].name) == TRUE)
+		{
+			isEqual = TRUE;
+			printf("\nTRUE\n");
+		}
+		i++;
+	}
+
+	if (isEqual == TRUE)  // the customer already exsists
+	{
+		printf("The customer already exist, and his number is %d\n", i);
+		return THE_CUSTOMER_ALREADY_EXSISTS;
+	}
+	char isTheUserWantToAddCustomer;
+	printf("The customer doesn't exists. Do you want to add him? (y/n) :  ");
+	flushall();
+	isTheUserWantToAddCustomer = getche();
+	printf("\n");
+	while (isTheUserWantToAddCustomer != 'y' && isTheUserWantToAddCustomer != 'n')
+	{
+		printf("Please choose one of the options (y|n) :  ");
+		flushall();
+		isTheUserWantToAddCustomer = getche();
+		printf("\n");
+	}
+	if (isTheUserWantToAddCustomer == 'n')
+	{
+		return USER_DONT_WANT_TO_ADD_CUSTOMER;
+	}
+
+	// The user want to continue and add the customer
+	// found empty room for the customer
+	int isThereAnEmptyRoom = FALSE;
+	int roomIndex = 0;
+	int floors = manager->hotel->floors;
+	int roomsInFloor = manager->hotel->roomsInFloor;
+	Room_t* roomPointer;
+	while (roomIndex < floors * roomsInFloor && isThereAnEmptyRoom == FALSE)
+	{
+		roomPointer = (manager->hotel->roomMatrix)[roomIndex/floors] + roomIndex%floors;
+		if (roomPointer->isOccupied == FALSE)  // there are no guests in this room
+		{
+			isThereAnEmptyRoom = TRUE;
+		}
+		else
+		{
+			roomIndex++;
+		}
+	}
+	if (isThereAnEmptyRoom == FALSE)
+	{
+		return THERE_IS_NOT_AN_EMPTY_ROOM_IN_HOLE_HOTEL;
+	}
+	int roomNum = getRoomNumber(roomIndex / floors, roomIndex % roomsInFloor);
+	printf("\nThe room of %s is %d\n", chosenName, roomNum);
+
+	//There is an empty room
+	// fill the room of the system:
+	// we know "roomIndex" in the matrix
+	int numOfGuest, breakfast;
+	do  // set number of guests
+	{
+		printf("Please enter num of guests in room (%d-%d) :", MIN_GUESTS_IN_ONE_ROOM, MAX_GUESTS_IN_ONE_ROOM);
+		scanf("%d", &numOfGuest);
+		printf("\n");
+	} while (isNumOfGuestInRoomLegal(numOfGuest) == FALSE);
+	do  // set number of guests who eat breakfast
+	{
+		printf("\nPlease enter num of guests in breakfast (%d-%d): \n", MIN_GUESTS_HAVE_BREAKFAST, MAX_GUESTS_HAVE_BREAKFAST);
+		scanf("%1d", &breakfast);
+	} while (isNumOfGuestInRoomEatBreakfastLegal(breakfast) == FALSE);
+	roomPointer = (Room_t*)malloc(sizeof(Room_t));
+	roomPointer->isOccupied = TRUE;
+	roomPointer->numOfGuests = numOfGuest;
+	roomPointer->breakfast = breakfast;
+	
+	//add the customer to the system:
+	char *name = chosenName, *creditNum;
+	int month, year;
+	Customer_t* customerPointer;
+	printf("Please enter credit number (must be %d digits) : \n", CREDIT_CARD_LENGTH);
+	//scanf("%s", creditNum);
+	flushall();
+	creditNum = readCreditNum();
+	while (isCreditNumberLegal(creditNum) == FALSE)
+	{
+		printf("Please check your credit number\n");
+		flushall();
+		creditNum = readCreditNum();
+	}
+	
+	
+	printf("Please enter credit validity:\n");
+	//month
+	printf("Please enter the month (between %d to %d) : \n", MIN_MONTH, MAX_MONTH);
+	scanf("%d", &month);
+	while (isCreditValidityMonthLegal(month) == FALSE)
+	{
+		printf("\nthe month must be between %d to %d\n", MIN_MONTH, MAX_MONTH);
+		scanf("%d", &month);
+	}
+	//(month and year, WITHOUT spaces, dots or any character that isn't digit):\n");
+	//printf("For example: 11.2011  --->  112011\n");
+
+	printf("\nPlease enter the year (between %d to %d)\n", MIN_YEAR, MAX_YEAR);
+	scanf("%d", &year);  
+	while (isCreditValidityYearLegal(year) == FALSE)
+	{
+		printf("\nthe year must be between %d to %d\n", MIN_YEAR, MAX_YEAR);
+		scanf("%d", &year);
+	}
+
+	// add the customer
+	customerPointer = addCustomer(name, creditNum, month, year, manager);
+	printf("\nThe customer was added successfully!");
+	
+	// Our main information: customerPointer and roomPointer
+	//add a reservation to the array:
+	addReservation(customerPointer, roomPointer, manager);
+	printf("\nThe reservation was added successfully!");
+	return CHECKIN_COMPLETED_SUCCESSFULLY;
+}
+
+
+// chackOut
+
+int checkOut(int roomNumber, Super_Struct* manager)
+{
+	/* The method finds the position of the room in Matrix
+	   Example: room 103 is room number 3 in floor number 1
+	*/
+	int numOfFloor = (roomNumber / MAX_ROOMS_IN_ONE_FLOOR) - 1;  // the floors' counting starts from 1, that's why: (-1)
+	int numOfRoom = (roomNumber % MAX_ROOMS_IN_ONE_FLOOR) - 1;  // the rooms' counting starts from 1, that's why: (-1)
+	Room_t* roomPointerForChekOut = manager->hotel->roomMatrix[numOfFloor] + numOfRoom;
+
+	Reservatrion_t* reservationsArrayPointer = manager->reservatrionArray;
+	int i = 0;
+	while ((i < manager->numOfReservations) && (reservationsArrayPointer[i].roomPointer != roomPointerForChekOut))
+	{
+		i++;
+	}
+	if (i >= manager->numOfReservations)  // if the method didn't find the room
+	{
+		return ROOM_FOR_CHECKOUT_WAS_NOT_FOUNT;
+	}
+	
+	// checkout has completed (give TRUE to the reservation)
+	reservationsArrayPointer[i].isCheckOut = TRUE;
+
+	//Reset the values of the room
+	roomPointerForChekOut->isOccupied = FALSE;
+	roomPointerForChekOut->breakfast = 0;
+	roomPointerForChekOut->numOfGuests = 0;
+
+	return CHECKOUT_COMPLETED_SUCCESSFULLY;
+}
+
+
+// read from the user the credit number
+char* readCreditNum()
+{
+	char* creditNum = (char*)calloc(CREDIT_CARD_ARRAY_LENGTH, sizeof(char));
+	int i;
+	flushall();
+	for (i = 0; i < CREDIT_CARD_LENGTH; i++)
+	{
+		creditNum[i] = getchar();
+	}
+	//creditNum[CREDIT_CARD_LENGTH] = '\0';
+	return creditNum;
+}
+
+
+/*
+int areNamesIdenticalIgnoreLetterCases(char* name1, char* name2)
+{
+	return (strcmp(strlwr(name1), strlwr(name2)) == 0) ? TRUE : FALSE;
+}
+*/
+void freeAll(Super_Struct manager)
+{
+
+}
+
+#endif // __HOTEL_FUNC
