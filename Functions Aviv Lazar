@@ -34,7 +34,7 @@
 
 
 
-//Makro:
+// those are Makro sentences:
 // Is num of guests legal (in one room)
 #define isNumOfGuestInRoomLegal(numOfGuest)  ((numOfGuest >= MIN_GUESTS_IN_ONE_ROOM && numOfGuest <= MAX_GUESTS_IN_ONE_ROOM) ? TRUE : FALSE)
 // Is num of guests who can eat breakfast legal (in one room)
