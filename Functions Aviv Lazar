@@ -490,6 +490,7 @@ char* readCreditNum()
 // free all the alocated structs (in end )
 void freeAll(Super_Struct manager)
 {
+    
     Customer_t* currentCustomer = manager->customerArray;  // customer 0
     Room_t** roomMatrix = manager->hotel->roomMatrix;  // array of floors
     int i, floors = manager->hotel->floors;
@@ -508,12 +509,16 @@ void freeAll(Super_Struct manager)
         free(*(roomMatrix + i));  // *(roomMatrix + i) = the rooms array in floor i.
     }
     free(roomMatrix);  // free array of floors
+    free(manager->hotel);  // free the "dad" of the floors
     
     // free all reservations
     // we already free the rooms and customers, so:
     free(manager->reservatrionArray);
-
+    
+    // free the source of all the structs
+    free(manager);
 }
+
 
 
 #endif // __HOTEL_FUNC
