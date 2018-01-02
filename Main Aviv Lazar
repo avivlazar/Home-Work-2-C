@@ -1,0 +1,106 @@
+#pragma warning(disable: 4996)
+#include <stdio.h>
+#include <stdlib.h>
+#include "Hotel_Structs.h"
+#include "Hotel_Functions.h"
+
+
+
+#define START_PYSICAL_CUSTOMER_ARRAY_SIZE 2
+#define START_PYSICAL_RESERVATION_ARRAY_SIZE 2
+#define NUM_OF_HOTELS 1
+
+void main()
+{
+	// Setting the hotel
+	Super_Struct* manager = (Super_Struct*)calloc(NUM_OF_HOTELS, sizeof(Super_Struct));
+
+
+
+	// Building the information of the hotel:
+	manager->hotelName = "California";
+	
+	manager->hotel = (Hotel_t*)malloc(sizeof(Hotel_t));
+
+	manager->customerArraySize = START_PYSICAL_CUSTOMER_ARRAY_SIZE;
+	manager->customerArray = (Customer_t*)calloc(manager->customerArraySize, sizeof(Customer_t));
+	
+	manager->reservatrionArraySize = START_PYSICAL_RESERVATION_ARRAY_SIZE;
+	manager->reservatrionArray = (Reservatrion_t*)calloc(manager->reservatrionArraySize, sizeof(Reservatrion_t));
+
+
+	// numOfCustomers and numOfReservations are automatically 0.
+
+
+	Hotel_t *california = manager->hotel;  // nick name
+
+//	scanf("%d", &(california->floors));
+//	scanf("%d", &(california->roomsInFloor));
+
+
+	// THE EXAMPLE
+	california->floors = 4;
+	california->roomsInFloor = 5;
+
+	int floors = california->floors;  // Number of floors
+	int roomsInFloor = california->roomsInFloor;  // Number of rooms in one floor
+
+	
+	
+	// Build the matrix of room:
+	int totalNumOfRooms = floors * roomsInFloor;  // the total number of rooms in hotel: floors * romms in one floor
+	printf("The total number of rooms is: %d\n", totalNumOfRooms);
+
+	california->roomMatrix = (Room_t**)malloc(floors * sizeof(Room_t*));
+	Room_t **roomsMatrix = california->roomMatrix;
+
+	// Reset the rooms in the hotel:
+	int k;
+	for (k = 0; k < floors ; k++)
+	{
+		roomsMatrix[k] = (Room_t*)calloc(roomsInFloor, sizeof(Room_t));
+		/*
+		  calloc already do the active: 
+		  california->roomMatrix[k][j].areThereGuests = 0;
+		  For remember: roomsMatrix[k] == adrees of: room 0 in floor k
+		*/
+	}
+
+	// THE EXAMPLE
+	Room_t room1 = { 1, 3, 2 };
+	Room_t room2 = { 1, 4, 0 };
+	Room_t room3 = { 1, 1, 1 };
+
+	/*
+	printf("Please enter your new customer:\n");
+	printf("Credit Number: (12 digits)");
+	scanf("%12d\n", arrayOfCusromers[logicSize - 1].creditNum);  // credit number must be axect 12 digits
+	printf("Credit Val (mounth & year, for example: 02.1994 ---> 021994): ");
+	scanf("%6d\n", arrayOfCusromers[logicSize - 1].creditVal);
+	*/
+
+	
+
+
+	//addCustomer("aviv", 12345, 21994, "");
+	roomsMatrix[0][0] = room1;
+	roomsMatrix[1][2] = room2;
+	roomsMatrix[3][3] = room3;
+
+	showHotelStatus(california);
+
+
+	addCustomer("aviv", "121212121212", 6, 2015, manager);
+	addCustomer("Yossi", "343434343434", 9, 2017, manager);
+	addCustomer("Shmooel", "123123123123", 9, 2017, manager);
+	addCustomer("Piza", "456456456456", 9, 2017, manager);
+	addCustomer("Peperoni", "987987987987", 9, 2017, manager);
+	printf("\nthe size of array is: %d\n", manager->customerArraySize);
+
+	//addReservation(manager->customerArray[0], roomsMatrix[0], manager);
+	checkIn(manager);
+
+	//freeAll(manager);
+	system("pause");
+
+}
