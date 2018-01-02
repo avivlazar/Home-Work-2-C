@@ -284,7 +284,7 @@ customer_t* subStringCustomerArrayGetter(char* subString, management_t* manage)
 
 
 
-/*if checkIn was suc*/
+/*if checkIn was */
 int checkIn(Super_Struct *manager)
 {
 	/* -Print all the Customers in the system.
@@ -317,7 +317,7 @@ int checkIn(Super_Struct *manager)
 		if (areNamesIdenticalIgnoreLetterCases(chosenName, customerArrayPointer[i].name) == TRUE)
 		{
 			isEqual = TRUE;
-			printf("\nTRUE\n");
+			//printf("\nTRUE\n");
 		}
 		i++;
 	}
@@ -475,7 +475,7 @@ int checkOut(int roomNumber, Super_Struct* manager)
 // read from the user the credit number
 char* readCreditNum()
 {
-	char* creditNum = (char*)calloc(CREDIT_CARD_ARRAY_LENGTH, sizeof(char));
+	char* creditNum = (char*)calloc(sizeof(char), CREDIT_CARD_ARRAY_LENGTH);
 	int i;
 	flushall();
 	for (i = 0; i < CREDIT_CARD_LENGTH; i++)
@@ -487,12 +487,7 @@ char* readCreditNum()
 }
 
 
-/*
-int areNamesIdenticalIgnoreLetterCases(char* name1, char* name2)
-{
-	return (strcmp(strlwr(name1), strlwr(name2)) == 0) ? TRUE : FALSE;
-}
-*/
+
 void freeAll(Super_Struct manager)
 {
 
