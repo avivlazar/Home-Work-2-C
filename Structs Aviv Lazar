@@ -1,0 +1,97 @@
+#pragma once
+#ifndef __HOTEL_STRUCT
+#define __HOTEL_STRUCT
+
+
+#define MAX_ROOMS_IN_ONE_FLOOR 100
+#define CREDIT_CARD_LENGTH  12
+#define CREDIT_CARD_ARRAY_LENGTH  13
+#define MAX_NAME_LENGTH 255
+
+#define MAX_GUESTS_IN_ONE_ROOM  4
+#define MIN_GUESTS_IN_ONE_ROOM  1
+
+#define MAX_GUESTS_HAVE_BREAKFAST  4
+#define MIN_GUESTS_HAVE_BREAKFAST  0
+
+
+
+#define MIN_MONTH 1
+#define MAX_MONTH 12
+
+#define MIN_YEAR 2010
+#define MAX_YEAR 2020
+
+
+
+// prototypes
+
+// ROOM struct
+typedef struct
+{
+	int isOccupied;  // bollean argument: 0 OR 1. if the room is empty, it's 0. Else 1;
+	int numOfGuests;  // Number of Guests that are written in the room
+	int breakfast;  // number of guests who are written in the room allow to eat breakfast 
+} Room_t;
+
+
+// HOTEL struct
+typedef struct
+{
+	int floors;  // number of floors of the hotel
+	int roomsInFloor;  // number of rooms in each floor
+	Room_t **roomMatrix;  // matrix which contains all rooms in the hotel
+} Hotel_t;
+
+
+// CUSTOMER struct
+typedef struct
+{
+	int id;  //internal system customer' id
+	char name[MAX_NAME_LENGTH];  // cstomer' name
+	char creditNum[CREDIT_CARD_ARRAY_LENGTH];  // customer' credir number. Contains exectly 12 serials. (+ \0)
+	int creditValYear;
+	int creditValMonth;// customer' credit' validity. Contains two numbers: month, year.
+} Customer_t;
+
+
+// RESERVATION struct
+typedef struct
+{
+	Customer_t *customerPointer;  // customer' pointer
+	Room_t *roomPointer;  // room' pointer
+	int isCheckOut;  // if checkout was performed in the reservation, the value is 1. Else 0.
+	int numOfGuests;  // Number of Guests that are written in the room (1 - 4)
+	int breakfast;  // number of guests who are written in the room allow to eat breakfast (0 - 4)
+} Reservatrion_t;
+
+
+//Super_Struct struct
+typedef struct
+{
+	Hotel_t *hotel;  // hotel pointer
+	char *hotelName;  // name of the hotel
+	
+	Customer_t *customerArray;  // customer array' pointer
+	int numOfCustomers;  // num of customers in the array
+	int customerArraySize;  // the size of the array
+
+	Reservatrion_t *reservatrionArray;  // reservatrion array' pointer
+	int reservatrionArraySize;
+	int numOfReservations;
+} Super_Struct;
+
+
+// declaration of the methods:
+void showHotelStatus(const Hotel_t* hotel);  // 1
+int isCreditNumberLegal(const char* creditNum);  // 6
+void transferFromLittleToCapital(Customer_t* custromerArray, int arrSize);  // 7
+Customer_t* addCustomer(const char* name, const char *creditNum, const int creditValMonth, const int creditValYear, Super_Struct *director);
+void printRoom(Room_t *room);
+void addReservation(Customer_t *customerPointer, Room_t *roomPointer, Super_Struct* director);
+char* readCreditNum();
+//int compaireNamesIgnoreLetterCases(char* name1, char* name2);
+
+
+
+#endif // __HOTEL_STRUCT
