@@ -1,12 +1,13 @@
+
 #pragma once
 #ifndef __HOTEL_STRUCT
 #define __HOTEL_STRUCT
 
 
 #define MAX_ROOMS_IN_ONE_FLOOR 100
-#define CREDIT_CARD_LENGTH  12
+#define CREDIT_NUMBER_LENGTH  12
 #define CREDIT_CARD_ARRAY_LENGTH  13
-#define MAX_NAME_LENGTH 255
+#define MAX_NAME_LENGTH 256
 
 #define MAX_GUESTS_IN_ONE_ROOM  4
 #define MIN_GUESTS_IN_ONE_ROOM  1
@@ -69,10 +70,10 @@ typedef struct
 //Super_Struct struct
 typedef struct
 {
-	Hotel_t *hotel;  // hotel pointer
+	Hotel_t* hotel;  // hotel pointer
 	char *hotelName;  // name of the hotel
 	
-	Customer_t *customerArray;  // customer array' pointer
+	Customer_t* customerArray;  // customer array' pointer
 	int numOfCustomers;  // num of customers in the array
 	int customerArraySize;  // the size of the array
 
@@ -90,7 +91,9 @@ Customer_t* addCustomer(const char* name, const char *creditNum, const int credi
 void printRoom(Room_t *room);
 void addReservation(Customer_t *customerPointer, Room_t *roomPointer, Super_Struct* director);
 char* readCreditNum();
-//int compaireNamesIgnoreLetterCases(char* name1, char* name2);
+Customer_t* getAllCustomersWithSubStrByStruct(const char* subString, const Super_Struct* manager);
+void freeAll(Super_Struct* manager);
+
 
 
 
