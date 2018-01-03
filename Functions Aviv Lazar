@@ -4,7 +4,7 @@
 
 #pragma warning(disable: 4996)
 #include <stdio.h>
-#include "Hotel_Structs.h"
+#include "Structs.h"
 #include <string.h>
 #include <conio.h>
 
@@ -35,6 +35,7 @@
 
 
 // those are Makro sentences:
+#define isCustomerNameLegal(name)  strlen(name) > MAX_NAME_LENGTH ? printf("the name is too long/n") : printf("Good!!");
 // Is num of guests legal (in one room)
 #define isNumOfGuestInRoomLegal(numOfGuest)  ((numOfGuest >= MIN_GUESTS_IN_ONE_ROOM && numOfGuest <= MAX_GUESTS_IN_ONE_ROOM) ? TRUE : FALSE)
 // Is num of guests who can eat breakfast legal (in one room)
@@ -46,7 +47,7 @@
 // return true if the names are the same, ignore letter' cases
 #define areNamesIdenticalIgnoreLetterCases(n1, n2)  ((strcmp(strlwr(n1), strlwr(n2)) == 0) ? TRUE : FALSE)
 
-#define getRoomNumber(floorIndexInArray, roomIndexInArray)  ((floorIndexInArray + 1) * MAX_ROOMS_IN_ONE_FLOOR + roomIndexInArray + 1);
+#define getRoomNumber(floorIndexInArray, roomIndexInArray)  ((floorIndexInArray + 1) * MAX_ROOMS_IN_ONE_FLOOR + roomIndexInArray + 1)
 
 
 
@@ -159,6 +160,10 @@ void printRoom(Room_t *room)
 /* Check customer' credit' number. if 'creditNum' is legal, return 1. Else 0*/
 int isCreditNumberLegal(const char* creditNum)
 {
+    if(strlen(creditNum) != CREDIT_NUMBER_LENGTH)
+    {
+        return FALSE;
+    }
 	int i = 0;
 	char currenrChar;
 	while (creditNum[i] != '\0')
@@ -285,7 +290,7 @@ customer_t* subStringCustomerArrayGetter(char* subString, management_t* manage)
 
 
 /*if checkIn was */
-int checkIn(Super_Struct *manager)
+int checkIn(Super_Struct* manager)
 {
 	/* -Print all the Customers in the system.
 	   -The user write a name of customer.
@@ -304,11 +309,16 @@ int checkIn(Super_Struct *manager)
 	{
 		printf("%d) %s\n", i+1, customerArrayPointer[i].name);
 	}
-	printf("\nPlease enter a name: ");
+	
 	char* chosenName = (char*)malloc(MAX_NAME_LENGTH * sizeof(char));
 	//scanf("%s", chosenName);
-	gets(chosenName);  // save the name
-
+        
+        do
+        {
+            printf("\nPlease enter a name: ");
+	    gets(chosenName);  // save the name
+        }
+        
 	int isEqual = FALSE;
 	i = 0;
 	int limit = manager->numOfCustomers;
@@ -317,7 +327,6 @@ int checkIn(Super_Struct *manager)
 		if (areNamesIdenticalIgnoreLetterCases(chosenName, customerArrayPointer[i].name) == TRUE)
 		{
 			isEqual = TRUE;
-			//printf("\nTRUE\n");
 		}
 		i++;
 	}
@@ -327,18 +336,23 @@ int checkIn(Super_Struct *manager)
 		printf("The customer already exist, and his number is %d\n", i);
 		return THE_CUSTOMER_ALREADY_EXSISTS;
 	}
+        
+        
 	char isTheUserWantToAddCustomer;
-	printf("The customer doesn't exists. Do you want to add him? (y/n) :  ");
-	flushall();
-	isTheUserWantToAddCustomer = getche();
-	printf("\n");
-	while (isTheUserWantToAddCustomer != 'y' && isTheUserWantToAddCustomer != 'n')
-	{
-		printf("Please choose one of the options (y|n) :  ");
-		flushall();
-		isTheUserWantToAddCustomer = getche();
-		printf("\n");
-	}
+        int isCorrectValue = FALSE;
+        printf("The customer doesn't exists. Do you want to add him? (y/n) :\n");
+        do
+        {
+            isTheUserWantToAddCustomer = getche();
+            if(isTheUserWantToAddCustomer == 'y' || isTheUserWantToAddCustomer == 'n')
+            {
+                isCorrectValue = TRUE;
+            }
+	    printf("\n");
+            
+        }while(!isCorrectValue);
+	
+	
 	if (isTheUserWantToAddCustomer == 'n')
 	{
 		return USER_DONT_WANT_TO_ADD_CUSTOMER;
@@ -394,17 +408,19 @@ int checkIn(Super_Struct *manager)
 	char *name = chosenName, *creditNum;
 	int month, year;
 	Customer_t* customerPointer;
-	printf("Please enter credit number (must be %d digits) : \n", CREDIT_CARD_LENGTH);
-	//scanf("%s", creditNum);
-	flushall();
-	creditNum = readCreditNum();
-	while (isCreditNumberLegal(creditNum) == FALSE)
-	{
-		printf("Please check your credit number\n");
-		flushall();
-		creditNum = readCreditNum();
-	}
+        
+        int isCreditNumberLegal = FALSE;
+        do
+        {
+            printf("Please enter credit number (must be %d digits) : \n", CREDIT_NUMBER_LENGTH);
+            creditNum = readCreditNum();
+            isCreditNumberLegal = isCreditNumberLegal(creditNum);
+            isCreditNumberLegal == TRUE ? printf("Good!\n") : printf("Try again\n");
+            
+        }while (isCreditNumberLegal);
+       
 	
+        printf("\nCustomer credit number is: %s\n", creditNum);
 	
 	printf("Please enter credit validity:\n");
 	//month
@@ -475,20 +491,77 @@ int checkOut(int roomNumber, Super_Struct* manager)
 // read from the user the credit number
 char* readCreditNum()
 {
-	char* creditNum = (char*)calloc(sizeof(char), CREDIT_CARD_ARRAY_LENGTH);
-	int i;
-	flushall();
-	for (i = 0; i < CREDIT_CARD_LENGTH; i++)
-	{
-		creditNum[i] = getchar();
-	}
-	//creditNum[CREDIT_CARD_LENGTH] = '\0';
+	char* creditNum = (char*)malloc(CREDIT_CARD_ARRAY_LENGTH * sizeof(char));
+	int i = 0;
+        
+        gets(creditNum);
+        
 	return creditNum;
 }
 
 
+
+
+
+ //  return array of customers witch with this subStr
+Customer_t* getAllCustomersWithSubStrByStruct(const char* subString, const Super_Struct* manager)
+{
+    int i, numOfCustomersWithSubStr = 0;
+    Customer_t* customerArray = manager->customerArray;
+    Customer_t* result_customerArray;  // the result. cant do free on it
+    char* currentName = (char*)malloc(MAX_NAME_LENGTH * sizeof(char));
+    
+    //Customer_t* currentCustomer = (Customer_t*)malloc(sizeof(Customer_t));
+    //Customer_t* currentCustomer = 
+    
+    char* subStringSmallLetters = (char*)malloc((strlen(subString) + 1) * sizeof(char));
+    strcpy(subStringSmallLetters, subString);
+    strlwr(subString); // without cases of capital letters
+    for(i = 0; i < manager->numOfCustomers; i++)
+    {
+        if(strstr((customerArray + i)->name, subString))
+        {
+            numOfCustomersWithSubStr++;
+        }
+    }
+    
+    // set new customer array length with our counter: numOfCustomersWithSubStr
+    result_customerArray = (Customer_t*)malloc(numOfCustomersWithSubStr * sizeof(Customer_t);
+    
+    // build the new array:
+    int resultIndex = 0;
+    int index = 0;
+    while(resultIndex < numOfCustomersWithSubStr)  // if its false, we can be sure that there is not another customer to copy
+    {
+        // currentName = name of customer at place of index
+        strcpy(currentName, (customerArray + index)->name);
+        if (strstr((strlwr(currentName), subStringSmallLetters))
+        {
+            result_customerArray[resultIndex].id = customerArray[index].id;
+            result_customerArray[resultIndex].creditValYear = customerArray[index].creditValYear;
+            result_customerArray[resultIndex].creditValMonth = customerArray[index].creditValMonth;
+            strcpy(result_customerArray[resultIndex].name, customerArray[index].name);
+            strcpy(result_customerArray[resultIndex].creditNum, customerArray[index].creditNum);
+            resultIndex++;  // the index of result array: +1
+        }
+        index++;  // the index of customer array: +1
+    }
+    
+    // free
+    free(subStringSmallLetters);
+    
+    return result_customerArray;
+    /* The idea:
+     * we could do realoc with one for, instead malloc and 2 fors, 
+     * BUT in our average and worst case, the first option is O(nlg(n)),
+     * and the secend option is O(n).
+    */
+}
+
+
+
 // free all the alocated structs (in end )
-void freeAll(Super_Struct manager)
+void freeAll(Super_Struct* manager)
 {
     
     Customer_t* currentCustomer = manager->customerArray;  // customer 0
@@ -499,6 +572,7 @@ void freeAll(Super_Struct manager)
     {
         //currentCustomer = (manager->customerArray) + i;
         free((currentCustomer + i)->name);
+        free((currentCustomer + i)->creditNum);
     }
     free(currentCustomer);  // free the array itself
     
@@ -506,19 +580,17 @@ void freeAll(Super_Struct manager)
     for(i = 0; i < floors; i++)
     {
         //currentFloor = manager->hotel->roomMatrix[i];
-        free(*(roomMatrix + i));  // *(roomMatrix + i) = the rooms array in floor i.
+        free(roomMatrix[i]);  // roomMatrix[i] = the rooms array in floor i.
     }
     free(roomMatrix);  // free array of floors
     free(manager->hotel);  // free the "dad" of the floors
     
-    // free all reservations
+    // free all reservations:
     // we already free the rooms and customers, so:
     free(manager->reservatrionArray);
     
     // free the source of all the structs
     free(manager);
 }
-
-
 
 #endif // __HOTEL_FUNC
